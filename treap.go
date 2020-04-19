@@ -1,33 +1,36 @@
 package treap
 
-const minInt = -int((^uint(0))>>1) - 1
+// Handle performs purely functional transformations on a treap.
+type Handle struct {
+	CompareWeights, CompareKeys Comparator
+}
 
 // Node is the recurisve datastructure that defines a persistent treap.
 //
 // The zero value is ready to use.
 type Node struct {
-	Weight      int
-	Left, Right *Node
-	Key, Value  interface{}
+	Weight, Key, Value interface{}
+	Left, Right        *Node
 }
 
 // Comparator establishes ordering between two elements.
 // It returns -1 if a < b, 0 if a == b, and 1 if a > b.
+// Nil values are treated as -Inf.
 type Comparator func(a, b interface{}) int
 
 // Get an element by key.  Returns nil if the key is not in the treap.
 // O(log n) if the tree is balanced (i.e. has uniformly distributed weights).
 // Thread-safe.
-func (f Comparator) Get(n *Node, key interface{}) interface{} {
+func (h Handle) Get(n *Node, key interface{}) interface{} {
 	if n == nil {
 		return nil
 	}
 
-	switch comp := f(key, n.Key); {
+	switch comp := h.CompareKeys(key, n.Key); {
 	case comp < 0:
-		return f.Get(n.Left, key)
+		return h.Get(n.Left, key)
 	case comp > 0:
-		return f.Get(n.Right, key)
+		return h.Get(n.Right, key)
 	default:
 		return n.Value
 	}
@@ -36,18 +39,18 @@ func (f Comparator) Get(n *Node, key interface{}) interface{} {
 // Upsert updates an element, creating one if it is missing.
 //
 // O(log n) if the tree is balanced (see Get).
-func (f Comparator) Upsert(n *Node, weight int, key, val interface{}) (res *Node) {
+func (h Handle) Upsert(n *Node, weight, key, val interface{}) (res *Node) {
 	if n == nil {
 		return &Node{Weight: weight, Key: key, Value: val}
 	}
 
-	switch comp := f(key, n.Key); {
+	switch comp := h.CompareKeys(key, n.Key); {
 	case comp < 0:
 		res = &Node{
 			Weight: n.Weight,
 			Key:    n.Key,
 			Value:  n.Value,
-			Left:   f.Upsert(n.Left, weight, key, val),
+			Left:   h.Upsert(n.Left, weight, key, val),
 			Right:  n.Right,
 		}
 	case comp > 0:
@@ -56,7 +59,7 @@ func (f Comparator) Upsert(n *Node, weight int, key, val interface{}) (res *Node
 			Key:    n.Key,
 			Value:  n.Value,
 			Left:   n.Left,
-			Right:  f.Upsert(n.Right, weight, key, val),
+			Right:  h.Upsert(n.Right, weight, key, val),
 		}
 	default:
 		res = &Node{
@@ -68,12 +71,12 @@ func (f Comparator) Upsert(n *Node, weight int, key, val interface{}) (res *Node
 		}
 	}
 
-	if res.Left != nil && res.Left.Weight < res.Weight {
-		return f.leftRotation(res)
+	if res.Left != nil && h.CompareWeights(res.Left.Weight, res.Weight) < 0 {
+		return h.leftRotation(res)
 	}
 
-	if res.Right != nil && res.Right.Weight < res.Weight {
-		return f.rightRotation(res)
+	if res.Right != nil && h.CompareWeights(res.Right.Weight, res.Weight) < 0 {
+		return h.rightRotation(res)
 	}
 
 	return res
@@ -84,8 +87,8 @@ func (f Comparator) Upsert(n *Node, weight int, key, val interface{}) (res *Node
 // subtreaps.
 //
 // O(log n) if the treap is balanced (see Get).
-func (f Comparator) Split(n *Node, key interface{}) (*Node, *Node) {
-	ins := f.Upsert(n, minInt, key, nil) // minInt ensures `ins` is root node.
+func (h Handle) Split(n *Node, key interface{}) (*Node, *Node) {
+	ins := h.Upsert(n, nil, key, nil)
 	return ins.Left, ins.Right
 }
 
@@ -93,26 +96,26 @@ func (f Comparator) Split(n *Node, key interface{}) (*Node, *Node) {
 // weight.
 //
 // O(log n) if the treap is balanced (see Get).
-func (f Comparator) Merge(left, right *Node) *Node {
+func (h Handle) Merge(left, right *Node) *Node {
 	switch {
 	case left == nil:
 		return right
 	case right == nil:
 		return left
-	case left.Weight < right.Weight:
+	case h.CompareWeights(left.Weight, right.Weight) < 0:
 		return &Node{
 			Weight: left.Weight,
 			Key:    left.Key,
 			Value:  left.Value,
 			Left:   left.Left,
-			Right:  f.Merge(left.Right, right),
+			Right:  h.Merge(left.Right, right),
 		}
 	default:
 		return &Node{
 			Weight: right.Weight,
 			Key:    right.Key,
 			Value:  right.Value,
-			Left:   f.Merge(right.Left, left),
+			Left:   h.Merge(right.Left, left),
 			Right:  right.Right,
 		}
 	}
@@ -121,11 +124,11 @@ func (f Comparator) Merge(left, right *Node) *Node {
 // Delete a value.
 //
 // O(log n) if treap is balanced (see Get).
-func (f Comparator) Delete(n *Node, key interface{}) *Node {
-	return f.Merge(f.Split(n, key))
+func (h Handle) Delete(n *Node, key interface{}) *Node {
+	return h.Merge(h.Split(n, key))
 }
 
-func (f Comparator) leftRotation(n *Node) *Node {
+func (h Handle) leftRotation(n *Node) *Node {
 	return &Node{
 		Weight: n.Left.Weight,
 		Key:    n.Left.Key,
@@ -141,7 +144,7 @@ func (f Comparator) leftRotation(n *Node) *Node {
 	}
 }
 
-func (f Comparator) rightRotation(n *Node) *Node {
+func (h Handle) rightRotation(n *Node) *Node {
 	return &Node{
 		Weight: n.Right.Weight,
 		Key:    n.Right.Key,

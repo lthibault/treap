@@ -6,19 +6,10 @@ import (
 	"github.com/lthibault/treap"
 )
 
-var handle = treap.Comparator(func(a, b interface{}) int {
-	ai := a.(int)
-	bi := b.(int)
-
-	switch {
-	case ai < bi:
-		return -1
-	case ai > bi:
-		return 1
-	default:
-		return 0
-	}
-})
+var handle = treap.Handle{
+	CompareWeights: treap.IntComparator,
+	CompareKeys:    treap.IntComparator,
+}
 
 func TestTreap(t *testing.T) {
 	var root *treap.Node
