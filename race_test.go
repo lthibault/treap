@@ -18,9 +18,6 @@ func TestRace(t *testing.T) {
 
 	var root = unsafe.Pointer(handle.Upsert(nil, 0, 0, "a"))
 
-	cs := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	getRune := func(i int) rune { return rune(cs[i%(len(cs)-1)]) }
-
 	var wg sync.WaitGroup
 	wg.Add(iter)
 
