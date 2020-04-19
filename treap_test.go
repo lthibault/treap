@@ -23,19 +23,28 @@ var handle = treap.Comparator(func(a, b interface{}) int {
 func TestTreap(t *testing.T) {
 	var root *treap.Node
 
-	root = handle.Upsert(root, 0, 5, "a")
-	root = handle.Upsert(root, 1, 7, "b")
-	assertEq(t, "a", handle.Get(root, 5))
-	assertEq(t, "b", handle.Get(root, 7))
+	t.Run("Insert", func(t *testing.T) {
+		root = handle.Upsert(root, 1, 7, "a")
+		root = handle.Upsert(root, 11, 2, "b")
+		assertEq(t, "a", handle.Get(root, 7))
+		assertEq(t, "b", handle.Get(root, 2))
 
-	root = handle.Upsert(root, 2, 2, "c")
-	assertEq(t, "c", handle.Get(root, 2))
+		root = handle.Upsert(root, -1, 13, "c")
+		assertEq(t, "c", handle.Get(root, 13))
+	})
 
-	root = handle.Upsert(root, 2, 2, "d")
-	assertEq(t, "d", handle.Get(root, 2))
+	t.Run("Update", func(t *testing.T) {
+		root = handle.Upsert(root, -1, 13, "d")
+		assertEq(t, "d", handle.Get(root, 13))
+	})
 
-	root = handle.Delete(root, 5)
-	assertNil(t, handle.Get(root, 5))
+	t.Run("Delete", func(t *testing.T) {
+		root = handle.Delete(root, 5)
+		assertNil(t, handle.Get(root, 5))
+
+		root = handle.Delete(root, 13)
+		assertNil(t, handle.Get(root, 13))
+	})
 }
 
 func assertEq(t *testing.T, expected string, actual interface{}) {

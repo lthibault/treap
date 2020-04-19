@@ -23,27 +23,26 @@ func (f Comparator) Get(n *Node, key interface{}) interface{} {
 		return nil
 	}
 
-	switch comp := f(key, n.Key); comp {
-	case -1:
+	switch comp := f(key, n.Key); {
+	case comp < 0:
 		return f.Get(n.Left, key)
-	case 1:
+	case comp > 0:
 		return f.Get(n.Right, key)
-	case 0:
-		return n.Value
 	default:
-		panic("invalid Comparator output")
+		return n.Value
 	}
 }
 
 // Upsert updates an element, creating one if it is missing.
+//
 // O(log n) if the tree is balanced (see Get).
 func (f Comparator) Upsert(n *Node, weight int, key, val interface{}) (res *Node) {
 	if n == nil {
 		return &Node{Weight: weight, Key: key, Value: val}
 	}
 
-	switch comp := f(key, n.Key); comp {
-	case -1:
+	switch comp := f(key, n.Key); {
+	case comp < 0:
 		res = &Node{
 			Weight: n.Weight,
 			Key:    n.Key,
@@ -51,7 +50,7 @@ func (f Comparator) Upsert(n *Node, weight int, key, val interface{}) (res *Node
 			Left:   f.Upsert(n.Left, weight, key, val),
 			Right:  n.Right,
 		}
-	case 1:
+	case comp > 0:
 		res = &Node{
 			Weight: n.Weight,
 			Key:    n.Key,
@@ -59,7 +58,7 @@ func (f Comparator) Upsert(n *Node, weight int, key, val interface{}) (res *Node
 			Left:   n.Left,
 			Right:  f.Upsert(n.Right, weight, key, val),
 		}
-	case 0:
+	default:
 		res = &Node{
 			Weight: weight,
 			Key:    n.Key,
@@ -67,8 +66,6 @@ func (f Comparator) Upsert(n *Node, weight int, key, val interface{}) (res *Node
 			Left:   n.Left,
 			Right:  n.Right,
 		}
-	default:
-		panic("invalid Comparator output")
 	}
 
 	if res.Left != nil && res.Left.Weight < res.Weight {
