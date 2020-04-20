@@ -71,3 +71,7 @@ func TestRace(t *testing.T) {
 	close(ch)
 	wg.Wait()
 }
+
+func getRune(i int) rune {
+	return rune(chars[i%(len(chars)-1)])
+}
