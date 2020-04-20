@@ -190,6 +190,10 @@ func TestSetWeight(t *testing.T) {
 func TestPop(t *testing.T) {
 	var root *treap.Node
 
+	v, tail := handle.Pop(nil)
+	assert.Nil(t, v)
+	assert.Nil(t, tail)
+
 	cs := mkTestCases(1000)
 	for _, tc := range cs {
 		var ok bool
