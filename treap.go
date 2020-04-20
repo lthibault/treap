@@ -175,6 +175,10 @@ func (h Handle) Delete(n *Node, key interface{}) *Node {
 //
 // O(log n)
 func (h Handle) Pop(n *Node) (interface{}, *Node) {
+	if n == nil {
+		return nil, nil
+	}
+
 	return n.Value, h.Merge(n.Left, n.Right)
 }
 
