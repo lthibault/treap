@@ -19,11 +19,10 @@ type Node struct {
 type Comparator func(a, b interface{}) int
 
 // Get an element by key.  Returns nil if the key is not in the treap.
-// O(log n) if the tree is balanced (i.e. has uniformly distributed weights).
-// Thread-safe.
-func (h Handle) Get(n *Node, key interface{}) interface{} {
+// O(log n) if the treap is balanced (i.e. has uniformly distributed weights).
+func (h Handle) Get(n *Node, key interface{}) (v interface{}, found bool) {
 	if n == nil {
-		return nil
+		return nil, false
 	}
 
 	switch comp := h.CompareKeys(key, n.Key); {
@@ -32,36 +31,57 @@ func (h Handle) Get(n *Node, key interface{}) interface{} {
 	case comp > 0:
 		return h.Get(n.Right, key)
 	default:
-		return n.Value
+		return n.Value, true
 	}
+}
+
+// Insert an element into the treap, returning false if the element is already present.
+//
+// O(log n) if the treap is balanced (see Get).
+func (h Handle) Insert(n *Node, weight, key, val interface{}) (*Node, bool) {
+	return h.upsert(n, weight, key, val, false)
 }
 
 // Upsert updates an element, creating one if it is missing.
 //
-// O(log n) if the tree is balanced (see Get).
-func (h Handle) Upsert(n *Node, weight, key, val interface{}) (res *Node) {
+// O(log n) if the treap is balanced (see Get).
+func (h Handle) Upsert(n *Node, weight, key, val interface{}) (_ *Node, created bool) {
+	return h.upsert(n, weight, key, val, true)
+}
+
+func (h Handle) upsert(n *Node, weight, key, val interface{}, upsert bool) (res *Node, created bool) {
 	if n == nil {
-		return &Node{Weight: weight, Key: key, Value: val}
+		return &Node{Weight: weight, Key: key, Value: val}, true
 	}
 
 	switch comp := h.CompareKeys(key, n.Key); {
 	case comp < 0:
+		// use res as temp variable to avoid extra allocation
+		if res, created = h.upsert(n.Left, weight, key, val, upsert); res == nil {
+			return
+		}
+
 		res = &Node{
 			Weight: n.Weight,
 			Key:    n.Key,
 			Value:  n.Value,
-			Left:   h.Upsert(n.Left, weight, key, val),
+			Left:   res,
 			Right:  n.Right,
 		}
 	case comp > 0:
+		// use res as temp variable to avoid extra allocation
+		if res, created = h.upsert(n.Right, weight, key, val, upsert); res == nil {
+			return
+		}
+
 		res = &Node{
 			Weight: n.Weight,
 			Key:    n.Key,
 			Value:  n.Value,
 			Left:   n.Left,
-			Right:  h.Upsert(n.Right, weight, key, val),
+			Right:  res,
 		}
-	default:
+	case upsert:
 		res = &Node{
 			Weight: weight,
 			Key:    n.Key,
@@ -69,17 +89,17 @@ func (h Handle) Upsert(n *Node, weight, key, val interface{}) (res *Node) {
 			Left:   n.Left,
 			Right:  n.Right,
 		}
+	default:
+		return
 	}
 
 	if res.Left != nil && h.CompareWeights(res.Left.Weight, res.Weight) < 0 {
-		return h.leftRotation(res)
+		res = h.leftRotation(res)
+	} else if res.Right != nil && h.CompareWeights(res.Right.Weight, res.Weight) < 0 {
+		res = h.rightRotation(res)
 	}
 
-	if res.Right != nil && h.CompareWeights(res.Right.Weight, res.Weight) < 0 {
-		return h.rightRotation(res)
-	}
-
-	return res
+	return
 }
 
 // Split a treap into its left and right branches at point `key`.  Key need not be
@@ -88,7 +108,7 @@ func (h Handle) Upsert(n *Node, weight, key, val interface{}) (res *Node) {
 //
 // O(log n) if the treap is balanced (see Get).
 func (h Handle) Split(n *Node, key interface{}) (*Node, *Node) {
-	ins := h.Upsert(n, nil, key, nil)
+	ins, _ := h.Upsert(n, nil, key, nil)
 	return ins.Left, ins.Right
 }
 
@@ -115,7 +135,7 @@ func (h Handle) Merge(left, right *Node) *Node {
 			Weight: right.Weight,
 			Key:    right.Key,
 			Value:  right.Value,
-			Left:   h.Merge(right.Left, left),
+			Left:   h.Merge(left, right.Left),
 			Right:  right.Right,
 		}
 	}

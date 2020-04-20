@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/lthibault/treap"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestMaxTreap(t *testing.T) {
@@ -30,9 +31,8 @@ func TestMaxTreap(t *testing.T) {
 		test: []interface{}{0, 0, 0},
 	}} {
 		t.Run(tc.desc, func(t *testing.T) {
-			if v := comp(tc.test[0], tc.test[1]); tc.test[2] != v {
-				t.Errorf("Expected %v, got %v.", tc.test[2], v)
-			}
+			assert.Equal(t, tc.test[2], comp(tc.test[0], tc.test[1]),
+				"constraint %s violated", tc.desc)
 		})
 	}
 }
@@ -61,9 +61,8 @@ func TestIntComparator(t *testing.T) {
 		test: []interface{}{0, 0, 0},
 	}} {
 		t.Run(tc.desc, func(t *testing.T) {
-			if v := treap.IntComparator(tc.test[0], tc.test[1]); tc.test[2] != v {
-				t.Errorf("Expected %v, got %v.", tc.test[2], v)
-			}
+			assert.Equal(t, tc.test[2], treap.IntComparator(tc.test[0], tc.test[1]),
+				"constraint %s violated", tc.desc)
 		})
 	}
 }
@@ -92,9 +91,8 @@ func TestInt8Comparator(t *testing.T) {
 		test: []interface{}{int8(0), int8(0), 0},
 	}} {
 		t.Run(tc.desc, func(t *testing.T) {
-			if v := treap.Int8Comparator(tc.test[0], tc.test[1]); tc.test[2] != v {
-				t.Errorf("Expected %v, got %v.", tc.test[2], v)
-			}
+			assert.Equal(t, tc.test[2], treap.Int8Comparator(tc.test[0], tc.test[1]),
+				"constraint %s violated", tc.desc)
 		})
 	}
 }
@@ -123,9 +121,8 @@ func TestInt16Comparator(t *testing.T) {
 		test: []interface{}{int16(0), int16(0), 0},
 	}} {
 		t.Run(tc.desc, func(t *testing.T) {
-			if v := treap.Int16Comparator(tc.test[0], tc.test[1]); tc.test[2] != v {
-				t.Errorf("Expected %v, got %v.", tc.test[2], v)
-			}
+			assert.Equal(t, tc.test[2], treap.Int16Comparator(tc.test[0], tc.test[1]),
+				"constraint %s violated", tc.desc)
 		})
 	}
 }
@@ -154,9 +151,8 @@ func TestInt32Comparator(t *testing.T) {
 		test: []interface{}{int32(0), int32(0), 0},
 	}} {
 		t.Run(tc.desc, func(t *testing.T) {
-			if v := treap.Int32Comparator(tc.test[0], tc.test[1]); tc.test[2] != v {
-				t.Errorf("Expected %v, got %v.", tc.test[2], v)
-			}
+			assert.Equal(t, tc.test[2], treap.Int32Comparator(tc.test[0], tc.test[1]),
+				"constraint %s violated", tc.desc)
 		})
 	}
 }
@@ -185,9 +181,8 @@ func TestInt64Comparator(t *testing.T) {
 		test: []interface{}{int64(0), int64(0), 0},
 	}} {
 		t.Run(tc.desc, func(t *testing.T) {
-			if v := treap.Int64Comparator(tc.test[0], tc.test[1]); tc.test[2] != v {
-				t.Errorf("Expected %v, got %v.", tc.test[2], v)
-			}
+			assert.Equal(t, tc.test[2], treap.Int64Comparator(tc.test[0], tc.test[1]),
+				"constraint %s violated", tc.desc)
 		})
 	}
 }
@@ -219,9 +214,8 @@ func TestStringComparator(t *testing.T) {
 		test: []interface{}{"alpha", "bravo", -1},
 	}} {
 		t.Run(tc.desc, func(t *testing.T) {
-			if v := treap.StringComparator(tc.test[0], tc.test[1]); tc.test[2] != v {
-				t.Errorf("Expected %v, got %v.", tc.test[2], v)
-			}
+			assert.Equal(t, tc.test[2], treap.StringComparator(tc.test[0], tc.test[1]),
+				"constraint %s violated", tc.desc)
 		})
 	}
 }
@@ -253,9 +247,8 @@ func TestByteComparator(t *testing.T) {
 		test: []interface{}{[]byte("alpha"), []byte("bravo"), -1},
 	}} {
 		t.Run(tc.desc, func(t *testing.T) {
-			if v := treap.BytesComparator(tc.test[0], tc.test[1]); tc.test[2] != v {
-				t.Errorf("Expected %v, got %v.", tc.test[2], v)
-			}
+			assert.Equal(t, tc.test[2], treap.BytesComparator(tc.test[0], tc.test[1]),
+				"constraint %s violated", tc.desc)
 		})
 	}
 }
@@ -284,9 +277,8 @@ func TestTimeComparator(t *testing.T) {
 		test: []interface{}{t0, t0.Add(24 * 7 * 2 * time.Hour), -1},
 	}} {
 		t.Run(tc.desc, func(t *testing.T) {
-			if v := treap.TimeComparator(tc.test[0], tc.test[1]); tc.test[2] != v {
-				t.Errorf("Expected %v, got %v.", tc.test[2], v)
-			}
+			assert.Equal(t, tc.test[2], treap.TimeComparator(tc.test[0], tc.test[1]),
+				"constraint %s violated", tc.desc)
 		})
 	}
 }
@@ -315,9 +307,8 @@ func TestUIntComparator(t *testing.T) {
 		test: []interface{}{uint(0), uint(0), 0},
 	}} {
 		t.Run(tc.desc, func(t *testing.T) {
-			if v := treap.UIntComparator(tc.test[0], tc.test[1]); tc.test[2] != v {
-				t.Errorf("Expected %v, got %v.", tc.test[2], v)
-			}
+			assert.Equal(t, tc.test[2], treap.UIntComparator(tc.test[0], tc.test[1]),
+				"constraint %s violated", tc.desc)
 		})
 	}
 }
@@ -346,9 +337,8 @@ func TestUInt8Comparator(t *testing.T) {
 		test: []interface{}{uint8(0), uint8(0), 0},
 	}} {
 		t.Run(tc.desc, func(t *testing.T) {
-			if v := treap.UInt8Comparator(tc.test[0], tc.test[1]); tc.test[2] != v {
-				t.Errorf("Expected %v, got %v.", tc.test[2], v)
-			}
+			assert.Equal(t, tc.test[2], treap.UInt8Comparator(tc.test[0], tc.test[1]),
+				"constraint %s violated", tc.desc)
 		})
 	}
 }
@@ -377,9 +367,8 @@ func TestUInt16Comparator(t *testing.T) {
 		test: []interface{}{uint16(0), uint16(0), 0},
 	}} {
 		t.Run(tc.desc, func(t *testing.T) {
-			if v := treap.UInt16Comparator(tc.test[0], tc.test[1]); tc.test[2] != v {
-				t.Errorf("Expected %v, got %v.", tc.test[2], v)
-			}
+			assert.Equal(t, tc.test[2], treap.UInt16Comparator(tc.test[0], tc.test[1]),
+				"constraint %s violated", tc.desc)
 		})
 	}
 }
@@ -408,9 +397,8 @@ func TestUInt32Comparator(t *testing.T) {
 		test: []interface{}{uint32(0), uint32(0), 0},
 	}} {
 		t.Run(tc.desc, func(t *testing.T) {
-			if v := treap.UInt32Comparator(tc.test[0], tc.test[1]); tc.test[2] != v {
-				t.Errorf("Expected %v, got %v.", tc.test[2], v)
-			}
+			assert.Equal(t, tc.test[2], treap.UInt32Comparator(tc.test[0], tc.test[1]),
+				"constraint %s violated", tc.desc)
 		})
 	}
 }
@@ -439,9 +427,8 @@ func TestUInt64Comparator(t *testing.T) {
 		test: []interface{}{uint64(0), uint64(0), 0},
 	}} {
 		t.Run(tc.desc, func(t *testing.T) {
-			if v := treap.UInt64Comparator(tc.test[0], tc.test[1]); tc.test[2] != v {
-				t.Errorf("Expected %v, got %v.", tc.test[2], v)
-			}
+			assert.Equal(t, tc.test[2], treap.UInt64Comparator(tc.test[0], tc.test[1]),
+				"constraint %s violated", tc.desc)
 		})
 	}
 }
@@ -470,9 +457,8 @@ func TestFloat32Comparator(t *testing.T) {
 		test: []interface{}{float32(0), float32(0), 0},
 	}} {
 		t.Run(tc.desc, func(t *testing.T) {
-			if v := treap.Float32Comparator(tc.test[0], tc.test[1]); tc.test[2] != v {
-				t.Errorf("Expected %v, got %v.", tc.test[2], v)
-			}
+			assert.Equal(t, tc.test[2], treap.Float32Comparator(tc.test[0], tc.test[1]),
+				"constraint %s violated", tc.desc)
 		})
 	}
 }
@@ -501,9 +487,8 @@ func TestFloat64Comparator(t *testing.T) {
 		test: []interface{}{float64(0), float64(0), 0},
 	}} {
 		t.Run(tc.desc, func(t *testing.T) {
-			if v := treap.Float64Comparator(tc.test[0], tc.test[1]); tc.test[2] != v {
-				t.Errorf("Expected %v, got %v.", tc.test[2], v)
-			}
+			assert.Equal(t, tc.test[2], treap.Float64Comparator(tc.test[0], tc.test[1]),
+				"constraint %s violated", tc.desc)
 		})
 	}
 }

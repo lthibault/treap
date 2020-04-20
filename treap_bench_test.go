@@ -7,8 +7,6 @@ import (
 	"github.com/lthibault/treap"
 )
 
-const setspace = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-
 var root, discardLeft, discardRight *treap.Node
 
 func BenchmarkInsertSync(b *testing.B) {
@@ -27,7 +25,7 @@ func BenchmarkInsertSync(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		root = handle.Upsert(root, ws[i], i, vals[i])
+		root, _ = handle.Upsert(root, ws[i], i, vals[i])
 	}
 }
 
@@ -44,7 +42,7 @@ func BenchmarkSplitSync(b *testing.B) {
 	})
 
 	for i := 0; i < b.N; i++ {
-		root = handle.Upsert(root, ws[i], i, vals[i])
+		root, _ = handle.Upsert(root, ws[i], i, vals[i])
 	}
 
 	b.ReportAllocs()
@@ -68,7 +66,7 @@ func BenchmarkDeleteSync(b *testing.B) {
 	})
 
 	for i := 0; i < b.N; i++ {
-		root = handle.Upsert(root, ws[i], i, vals[i])
+		root, _ = handle.Upsert(root, ws[i], i, vals[i])
 	}
 
 	b.ReportAllocs()
@@ -80,5 +78,5 @@ func BenchmarkDeleteSync(b *testing.B) {
 }
 
 func getRune(i int) rune {
-	return rune(setspace[i%(len(setspace)-1)])
+	return rune(chars[i%(len(chars)-1)])
 }
