@@ -16,7 +16,7 @@ import (
 func TestRace(t *testing.T) {
 	var root = unsafe.Pointer(&treap.Node{
 		Weight: 0,
-		Key:    key(0),
+		Key:    0,
 		Value:  "a",
 	})
 
@@ -37,7 +37,7 @@ func TestRace(t *testing.T) {
 					// Write
 					for {
 						old := (*treap.Node)(atomic.LoadPointer(&root))
-						if new, _ := handle.Upsert(old, key(k), val, k); atomic.CompareAndSwapPointer(
+						if new, _ := handle.Upsert(old, k, val, k); atomic.CompareAndSwapPointer(
 							&root,
 							unsafe.Pointer(old),
 							unsafe.Pointer(new),
@@ -49,7 +49,7 @@ func TestRace(t *testing.T) {
 					// Delete
 					for {
 						old := (*treap.Node)(atomic.LoadPointer(&root))
-						if new := handle.Delete(old, key(k)); atomic.CompareAndSwapPointer(
+						if new := handle.Delete(old, k); atomic.CompareAndSwapPointer(
 							&root,
 							unsafe.Pointer(old),
 							unsafe.Pointer(new),
@@ -59,7 +59,7 @@ func TestRace(t *testing.T) {
 					}
 				default:
 					// Read
-					v, ok := handle.Get((*treap.Node)(atomic.LoadPointer(&root)), key(k))
+					v, ok := handle.Get((*treap.Node)(atomic.LoadPointer(&root)), k)
 					if ok && v.(rune) != val {
 						t.Error("violation")
 					}

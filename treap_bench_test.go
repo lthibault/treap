@@ -40,7 +40,7 @@ func BenchmarkSplitSync(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		discard, discardRight = handle.Split(root, key(i))
+		discard, discardRight = handle.Split(root, i)
 	}
 }
 
@@ -54,7 +54,7 @@ func BenchmarkMergeSync(b *testing.B) {
 	}
 
 	for i := 0; i < b.N; i++ {
-		splits[i].left, splits[i].right = handle.Split(root, key(i))
+		splits[i].left, splits[i].right = handle.Split(root, i)
 	}
 
 	b.ReportAllocs()
@@ -77,7 +77,7 @@ func BenchmarkDeleteSync(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		discard = handle.Delete(root, key(i))
+		discard = handle.Delete(root, i)
 	}
 }
 

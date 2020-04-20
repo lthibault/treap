@@ -9,15 +9,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type key int
-
 const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
 var handle = treap.Handle{
 	CompareWeights: treap.IntComparator,
-	CompareKeys: func(a, b interface{}) int {
-		return treap.IntComparator(int(a.(key)), int(b.(key)))
-	},
+	CompareKeys:    treap.IntComparator,
 }
 
 func TestTreap(t *testing.T) {
@@ -34,16 +30,16 @@ func TestTreap(t *testing.T) {
 				Ensure insertion n+1 doesn't invalidate insertion n.
 			*/
 
-			root, ok = handle.Insert(root, key(7), "a", 1)
+			root, ok = handle.Insert(root, 7, "a", 1)
 			assert.True(t, ok)
-			root, ok = handle.Insert(root, key(2), "b", 11)
+			root, ok = handle.Insert(root, 2, "b", 11)
 			assert.True(t, ok)
 
-			res, ok := handle.Get(root, key(7))
+			res, ok := handle.Get(root, 7)
 			assert.Equal(t, "a", res)
 			assert.True(t, ok)
 
-			res, ok = handle.Get(root, key(2))
+			res, ok = handle.Get(root, 2)
 			assert.Equal(t, "b", res)
 			assert.True(t, ok)
 		})
@@ -53,19 +49,19 @@ func TestTreap(t *testing.T) {
 				Ensure insertion n is immediately valid
 			*/
 
-			root, ok = handle.Insert(root, key(13), "c", -1)
+			root, ok = handle.Insert(root, 13, "c", -1)
 			assert.True(t, ok)
 
-			res, ok := handle.Get(root, key(13))
+			res, ok := handle.Get(root, 13)
 			assert.True(t, ok)
 			assert.Equal(t, "c", res)
 		})
 
 		t.Run("Update", func(t *testing.T) {
-			root, ok = handle.Upsert(root, key(13), "d", -1)
+			root, ok = handle.Upsert(root, 13, "d", -1)
 			assert.False(t, ok) // ensure it was created, not updated.
 
-			res, ok := handle.Get(root, key(13))
+			res, ok := handle.Get(root, 13)
 			assert.True(t, ok)
 			assert.Equal(t, "d", res)
 
@@ -80,24 +76,24 @@ func TestTreap(t *testing.T) {
 
 	t.Run("Delete", func(t *testing.T) {
 		t.Run("DeleteMissingValue", func(t *testing.T) {
-			root = handle.Delete(root, key(5))
-			_, ok = handle.Get(root, key(5))
+			root = handle.Delete(root, 5)
+			_, ok = handle.Get(root, 5)
 			assert.False(t, ok)
 		})
 
 		t.Run("DeleteExistingValue", func(t *testing.T) {
-			root = handle.Delete(root, key(13))
-			_, ok = handle.Get(root, key(13))
+			root = handle.Delete(root, 13)
+			_, ok = handle.Get(root, 13)
 			assert.False(t, ok)
 		})
 
 		t.Run("ValidateRemainingEntries", func(t *testing.T) {
 			// Ensure old values are still present
-			res, ok := handle.Get(root, key(7))
+			res, ok := handle.Get(root, 7)
 			assert.Equal(t, "a", res)
 			assert.True(t, ok)
 
-			res, ok = handle.Get(root, key(2))
+			res, ok = handle.Get(root, 2)
 			assert.Equal(t, "b", res)
 			assert.True(t, ok)
 		})
@@ -167,7 +163,7 @@ func TestSetWeight(t *testing.T) {
 	}
 
 	t.Run("MissingKeyIsNop", func(t *testing.T) {
-		_, ok = handle.SetWeight(root, key(9999999999), nil)
+		_, ok = handle.SetWeight(root, 9999999999, nil)
 		require.False(t, ok)
 	})
 
@@ -265,7 +261,7 @@ func testOthers(t *testing.T, handle treap.Handle, root *treap.Node, cs []testCa
 }
 
 type testCase struct {
-	key    key
+	key    int
 	value  string
 	weight int
 }
@@ -273,7 +269,7 @@ type testCase struct {
 func mkTestCases(n int) []testCase {
 	cs := make([]testCase, n)
 	for i := range cs {
-		cs[i].key = key(i)
+		cs[i].key = i
 		cs[i].weight = i
 		cs[i].value = randStr(5) // duplicates possible
 	}
