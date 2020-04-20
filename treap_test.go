@@ -123,6 +123,20 @@ func TestTreap(t *testing.T) {
 	})
 }
 
+func TestPop(t *testing.T) {
+	var root *treap.Node
+
+	cs := mkTestCases(t, 1000)
+	for _, tc := range cs {
+		root, _ = handle.Insert(root, tc.key, tc.value, tc.weight)
+	}
+
+	for w := root.Weight; root != nil; _, root = handle.Pop(root) {
+		assert.LessOrEqual(t, w, root.Weight,
+			"heap property violated: %s < %s", root.Weight, w)
+	}
+}
+
 func TestFuzz(t *testing.T) {
 	/*
 		For good measure, we perform a deterministic fuzz test.  We generate a large
@@ -133,12 +147,12 @@ func TestFuzz(t *testing.T) {
 	const iter = 100
 	var root *treap.Node
 
-	testCases := mkTestCases(t, iter)
+	cs := mkTestCases(t, iter)
 
 	// Test insertions
 	var ok bool
 	var v interface{}
-	for i, tc := range testCases {
+	for i, tc := range cs {
 		if root, ok = handle.Insert(root, tc.key, tc.value, tc.weight); !ok {
 			t.Error("insertion failed (key collision?)")
 			t.FailNow()
@@ -148,36 +162,36 @@ func TestFuzz(t *testing.T) {
 		assert.True(t, ok)
 		assert.Equal(t, tc.value, v)
 
-		testOthers(t, handle, root, testCases[0:i])
+		testOthers(t, handle, root, cs[0:i])
 	}
 
 	// Test single deletions
-	for i, tc := range testCases {
+	for i, tc := range cs {
 		temp := handle.Delete(root, tc.key)
 
 		v, ok = handle.Get(temp, tc.key)
 		assert.False(t, ok)
 		assert.Nil(t, v)
 
-		testOthers(t, handle, temp, testCases[0:i])
+		testOthers(t, handle, temp, cs[0:i])
 	}
 
 	// Test cumulative deletions
-	for i, tc := range testCases {
+	for i, tc := range cs {
 		root = handle.Delete(root, tc.key)
 
 		v, ok = handle.Get(root, tc.key)
 		assert.False(t, ok)
 		assert.Nil(t, v)
 
-		if i < len(testCases)-1 {
-			testOthers(t, handle, root, testCases[i+1:len(testCases)-1])
+		if i < len(cs)-1 {
+			testOthers(t, handle, root, cs[i+1:len(cs)-1])
 		}
 	}
 }
 
-func testOthers(t *testing.T, handle treap.Handle, root *treap.Node, testCases []testCase) {
-	for _, tc := range testCases {
+func testOthers(t *testing.T, handle treap.Handle, root *treap.Node, cs []testCase) {
+	for _, tc := range cs {
 		v, ok := handle.Get(root, tc.key)
 		assert.True(t, ok)
 		assert.Equal(t, tc.value, v)
@@ -191,25 +205,25 @@ type testCase struct {
 }
 
 func mkTestCases(t *testing.T, n int) []testCase {
-	testCases := make([]testCase, n)
-	for i := range testCases {
-		testCases[i].key = key(i)
-		testCases[i].weight = i
-		testCases[i].value = randStr(5) // duplicates possible
+	cs := make([]testCase, n)
+	for i := range cs {
+		cs[i].key = key(i)
+		cs[i].weight = i
+		cs[i].value = randStr(5) // duplicates possible
 	}
 
 	// shuffle weights
 	rand.Shuffle(n, func(i, j int) {
-		testCases[i].weight = j
-		testCases[j].weight = i
+		cs[i].weight = j
+		cs[j].weight = i
 	})
 
 	// shuffle keys
 	rand.Shuffle(n, func(i, j int) {
-		testCases[i], testCases[j] = testCases[j], testCases[i]
+		cs[i], cs[j] = cs[j], cs[i]
 	})
 
-	return testCases
+	return cs
 }
 
 func randStr(n int) string {

@@ -148,6 +148,17 @@ func (h Handle) Delete(n *Node, key interface{}) *Node {
 	return h.Merge(h.Split(n, key))
 }
 
+// Pop the next value off the heap.  By default, this is the item with the lowest
+// weight.
+//
+// Pop is equivalent to calling Delete on a root node's key, but avoids an O(n) insert
+// operation.
+//
+// O(log n)
+func (h Handle) Pop(n *Node) (interface{}, *Node) {
+	return n.Value, h.Merge(n.Left, n.Right)
+}
+
 func (h Handle) leftRotation(n *Node) *Node {
 	return &Node{
 		Weight: n.Left.Weight,
