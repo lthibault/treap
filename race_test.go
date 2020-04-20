@@ -16,7 +16,7 @@ import (
 func TestRace(t *testing.T) {
 	var root = unsafe.Pointer(&treap.Node{
 		Weight: 0,
-		Key:    0,
+		Key:    key(0),
 		Value:  "a",
 	})
 
@@ -26,18 +26,18 @@ func TestRace(t *testing.T) {
 	ch := make(chan struct{})
 
 	for i := 0; i < len(chars); i++ {
-		go func(key int, val rune) {
+		go func(k int, val rune) {
 			defer wg.Done()
 
 			<-ch // try to get as many read/writes happening at the same time
 
 			for i := 0; i < 1000; i++ {
 				switch {
-				case i&key == 0:
+				case i&k == 0:
 					// Write
 					for {
 						old := (*treap.Node)(atomic.LoadPointer(&root))
-						if new, _ := handle.Upsert(old, key, key, val); atomic.CompareAndSwapPointer(
+						if new, _ := handle.Upsert(old, key(k), val, k); atomic.CompareAndSwapPointer(
 							&root,
 							unsafe.Pointer(old),
 							unsafe.Pointer(new),
@@ -45,11 +45,11 @@ func TestRace(t *testing.T) {
 							break
 						}
 					}
-				case i&key == key-1:
+				case i&k == k-1:
 					// Delete
 					for {
 						old := (*treap.Node)(atomic.LoadPointer(&root))
-						if new := handle.Delete(old, key); atomic.CompareAndSwapPointer(
+						if new := handle.Delete(old, key(k)); atomic.CompareAndSwapPointer(
 							&root,
 							unsafe.Pointer(old),
 							unsafe.Pointer(new),
@@ -59,7 +59,7 @@ func TestRace(t *testing.T) {
 					}
 				default:
 					// Read
-					v, ok := handle.Get((*treap.Node)(atomic.LoadPointer(&root)), key)
+					v, ok := handle.Get((*treap.Node)(atomic.LoadPointer(&root)), key(k))
 					if ok && v.(rune) != val {
 						t.Error("violation")
 					}

@@ -25,7 +25,7 @@ func BenchmarkInsertSync(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		root, _ = handle.Upsert(root, ws[i], i, vals[i])
+		root, _ = handle.Upsert(root, key(i), vals[i], ws[i])
 	}
 }
 
@@ -42,14 +42,14 @@ func BenchmarkSplitSync(b *testing.B) {
 	})
 
 	for i := 0; i < b.N; i++ {
-		root, _ = handle.Upsert(root, ws[i], i, vals[i])
+		root, _ = handle.Upsert(root, key(i), vals[i], ws[i])
 	}
 
 	b.ReportAllocs()
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		root = handle.Delete(root, i)
+		root = handle.Delete(root, key(i))
 	}
 }
 
@@ -66,14 +66,14 @@ func BenchmarkDeleteSync(b *testing.B) {
 	})
 
 	for i := 0; i < b.N; i++ {
-		root, _ = handle.Upsert(root, ws[i], i, vals[i])
+		root, _ = handle.Upsert(root, key(i), vals[i], ws[i])
 	}
 
 	b.ReportAllocs()
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		discardLeft, discardRight = handle.Split(root, i)
+		discardLeft, discardRight = handle.Split(root, key(i))
 	}
 }
 

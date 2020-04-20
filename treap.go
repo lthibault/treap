@@ -38,18 +38,18 @@ func (h Handle) Get(n *Node, key interface{}) (v interface{}, found bool) {
 // Insert an element into the treap, returning false if the element is already present.
 //
 // O(log n) if the treap is balanced (see Get).
-func (h Handle) Insert(n *Node, weight, key, val interface{}) (*Node, bool) {
-	return h.upsert(n, weight, key, val, false)
+func (h Handle) Insert(n *Node, key, val, weight interface{}) (*Node, bool) {
+	return h.upsert(n, key, val, weight, false)
 }
 
 // Upsert updates an element, creating one if it is missing.
 //
 // O(log n) if the treap is balanced (see Get).
-func (h Handle) Upsert(n *Node, weight, key, val interface{}) (_ *Node, created bool) {
-	return h.upsert(n, weight, key, val, true)
+func (h Handle) Upsert(n *Node, key, val, weight interface{}) (_ *Node, created bool) {
+	return h.upsert(n, key, val, weight, true)
 }
 
-func (h Handle) upsert(n *Node, weight, key, val interface{}, upsert bool) (res *Node, created bool) {
+func (h Handle) upsert(n *Node, key, val, weight interface{}, upsert bool) (res *Node, created bool) {
 	if n == nil {
 		return &Node{Weight: weight, Key: key, Value: val}, true
 	}
@@ -57,7 +57,7 @@ func (h Handle) upsert(n *Node, weight, key, val interface{}, upsert bool) (res 
 	switch comp := h.CompareKeys(key, n.Key); {
 	case comp < 0:
 		// use res as temp variable to avoid extra allocation
-		if res, created = h.upsert(n.Left, weight, key, val, upsert); res == nil {
+		if res, created = h.upsert(n.Left, key, val, weight, upsert); res == nil {
 			return
 		}
 
@@ -70,7 +70,7 @@ func (h Handle) upsert(n *Node, weight, key, val interface{}, upsert bool) (res 
 		}
 	case comp > 0:
 		// use res as temp variable to avoid extra allocation
-		if res, created = h.upsert(n.Right, weight, key, val, upsert); res == nil {
+		if res, created = h.upsert(n.Right, key, val, weight, upsert); res == nil {
 			return
 		}
 
@@ -108,7 +108,7 @@ func (h Handle) upsert(n *Node, weight, key, val interface{}, upsert bool) (res 
 //
 // O(log n) if the treap is balanced (see Get).
 func (h Handle) Split(n *Node, key interface{}) (*Node, *Node) {
-	ins, _ := h.Upsert(n, nil, key, nil)
+	ins, _ := h.Upsert(n, key, nil, nil)
 	return ins.Left, ins.Right
 }
 
