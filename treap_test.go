@@ -126,7 +126,7 @@ func TestTreap(t *testing.T) {
 func TestPop(t *testing.T) {
 	var root *treap.Node
 
-	cs := mkTestCases(t, 1000)
+	cs := mkTestCases(1000)
 	for _, tc := range cs {
 		root, _ = handle.Insert(root, tc.key, tc.value, tc.weight)
 	}
@@ -144,10 +144,8 @@ func TestFuzz(t *testing.T) {
 		deletes, while ensuring the other entries are not invalidated by this process.
 	*/
 
-	const iter = 100
 	var root *treap.Node
-
-	cs := mkTestCases(t, iter)
+	cs := mkTestCases(100)
 
 	// Test insertions
 	var ok bool
@@ -204,7 +202,7 @@ type testCase struct {
 	weight int
 }
 
-func mkTestCases(t *testing.T, n int) []testCase {
+func mkTestCases(n int) []testCase {
 	cs := make([]testCase, n)
 	for i := range cs {
 		cs[i].key = key(i)

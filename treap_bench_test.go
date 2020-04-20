@@ -1,7 +1,6 @@
 package treap_test
 
 import (
-	"math/rand"
 	"testing"
 
 	"github.com/lthibault/treap"
@@ -10,63 +9,26 @@ import (
 var root, discardLeft, discardRight *treap.Node
 
 func BenchmarkInsertSync(b *testing.B) {
-	ws := make([]int, b.N)
-	vals := make([]rune, b.N)
-	for i := range ws {
-		ws[i] = i
-		vals[i] = getRune(i)
-	}
-
-	rand.Shuffle(b.N, func(i, j int) {
-		ws[i], ws[j] = ws[j], ws[i]
-	})
+	root = nil
+	cs := mkTestCases(b.N)
 
 	b.ReportAllocs()
 	b.ResetTimer()
 
-	for i := 0; i < b.N; i++ {
-		root, _ = handle.Upsert(root, key(i), vals[i], ws[i])
+	for _, tc := range cs {
+		root, _ = handle.Upsert(root, tc.key, tc.value, tc.weight)
 	}
 }
 
 func BenchmarkSplitSync(b *testing.B) {
-	ws := make([]int, b.N)
-	vals := make([]rune, b.N)
-	for i := range ws {
-		ws[i] = i
-		vals[i] = getRune(i)
-	}
+	root = nil
+	discardLeft = nil
+	discardRight = nil
 
-	rand.Shuffle(b.N, func(i, j int) {
-		ws[i], ws[j] = ws[j], ws[i]
-	})
+	cs := mkTestCases(b.N)
 
-	for i := 0; i < b.N; i++ {
-		root, _ = handle.Upsert(root, key(i), vals[i], ws[i])
-	}
-
-	b.ReportAllocs()
-	b.ResetTimer()
-
-	for i := 0; i < b.N; i++ {
-		root = handle.Delete(root, key(i))
-	}
-}
-
-func BenchmarkDeleteSync(b *testing.B) {
-	ws := make([]int, b.N)
-	vals := make([]rune, b.N)
-	for i := range ws {
-		ws[i] = i
-		vals[i] = getRune(i)
-	}
-
-	rand.Shuffle(b.N, func(i, j int) {
-		ws[i], ws[j] = ws[j], ws[i]
-	})
-
-	for i := 0; i < b.N; i++ {
-		root, _ = handle.Upsert(root, key(i), vals[i], ws[i])
+	for _, tc := range cs {
+		root, _ = handle.Upsert(root, tc.key, tc.value, tc.weight)
 	}
 
 	b.ReportAllocs()
@@ -77,20 +39,51 @@ func BenchmarkDeleteSync(b *testing.B) {
 	}
 }
 
-func BenchmarkPopSync(b *testing.B) {
-	ws := make([]int, b.N)
-	vals := make([]rune, b.N)
-	for i := range ws {
-		ws[i] = i
-		vals[i] = getRune(i)
+func BenchmarkMergeSync(b *testing.B) {
+	root = nil
+	discardLeft = nil
+	discardRight = nil
+
+	cs := mkTestCases(b.N)
+
+	for _, tc := range cs {
+		root, _ = handle.Upsert(root, tc.key, tc.value, tc.weight)
 	}
 
-	rand.Shuffle(b.N, func(i, j int) {
-		ws[i], ws[j] = ws[j], ws[i]
-	})
+	splits := make([]struct{ left, right *treap.Node }, b.N)
+	for i := 0; i < b.N; i++ {
+		splits[i].left, splits[i].right = handle.Split(root, key(i))
+	}
+
+	b.ReportAllocs()
+	b.ResetTimer()
+
+	for _, s := range splits {
+		root = handle.Merge(s.left, s.right)
+	}
+}
+
+func BenchmarkDeleteSync(b *testing.B) {
+	root = nil
+	cs := mkTestCases(b.N)
+
+	for _, tc := range cs {
+		root, _ = handle.Upsert(root, tc.key, tc.value, tc.weight)
+	}
+
+	b.ReportAllocs()
+	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		root, _ = handle.Upsert(root, key(i), vals[i], ws[i])
+		root = handle.Delete(root, key(i))
+	}
+}
+
+func BenchmarkPopSync(b *testing.B) {
+	cs := mkTestCases(b.N)
+
+	for _, tc := range cs {
+		root, _ = handle.Upsert(root, tc.key, tc.value, tc.weight)
 	}
 
 	b.ReportAllocs()
