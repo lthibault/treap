@@ -41,8 +41,6 @@ func BenchmarkSplitSync(b *testing.B) {
 
 func BenchmarkMergeSync(b *testing.B) {
 	root = nil
-	discardLeft = nil
-	discardRight = nil
 
 	cs := mkTestCases(b.N)
 
@@ -80,6 +78,7 @@ func BenchmarkDeleteSync(b *testing.B) {
 }
 
 func BenchmarkPopSync(b *testing.B) {
+	root = nil
 	cs := mkTestCases(b.N)
 
 	for _, tc := range cs {
@@ -93,6 +92,22 @@ func BenchmarkPopSync(b *testing.B) {
 		_, root = handle.Pop(root)
 	}
 }
+
+// func BenchmarkNextSync(b *testing.B) {
+// 	root = nil
+// 	cs := mkTestCases(b.N)
+
+// 	for _, tc := range cs {
+// 		root, _ = handle.Upsert(root, tc.key, tc.value, tc.weight)
+// 	}
+
+// 	b.ReportAllocs()
+// 	b.ResetTimer()
+
+// 	for i := 0; i < b.N; i++ {
+// 		root = handle.Next(root)
+// 	}
+// }
 
 func getRune(i int) rune {
 	return rune(chars[i%(len(chars)-1)])

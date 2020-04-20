@@ -6,6 +6,7 @@ import (
 
 	"github.com/lthibault/treap"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type key int
@@ -20,6 +21,10 @@ var handle = treap.Handle{
 }
 
 func TestTreap(t *testing.T) {
+	/*
+		This test preforms a somewhat ecological test that combines operations.
+		It is done in the spirit of an integration test.
+	*/
 	var root *treap.Node
 
 	var ok bool
@@ -103,24 +108,83 @@ func TestTreap(t *testing.T) {
 			}
 		})
 	})
+}
 
-	t.Run("InsertExistingFails", func(t *testing.T) {
-		_, ok = handle.Get(root, key(2))
-		assert.True(t, ok)
+func TestInsert(t *testing.T) {
+	var root *treap.Node
+	cs := mkTestCases(100)
 
-		// left branch
-		_, ok = handle.Insert(root, key(2), "fail", 9001)
-		assert.False(t, ok)
+	t.Run("NewValue", func(t *testing.T) {
+		for i, tc := range cs {
+			new, ok := handle.Insert(root, tc.key, tc.value, tc.weight)
+			assert.True(t, ok)
+			assert.NotNil(t, new)
 
-		// right branch
-		root, _ = handle.Insert(root, key(9001), "d", 9001)
-		new, ok := handle.Insert(root, key(9001), "fail", 0)
-		assert.False(t, ok)
+			t.Run("IsImmutable", func(t *testing.T) {
+				require.NotEqual(t, root, new, "insertion %d", i)
 
-		if new != nil && new != root {
-			t.Error("failed insert returned modified treap")
+				_, ok := handle.Get(root, tc.key)
+				require.False(t, ok, "inserted value found in root (insertion %d)", i)
+			})
+
+			t.Run("IsRetrievable", func(t *testing.T) {
+				v, ok := handle.Get(new, tc.key)
+				assert.True(t, ok)
+				assert.Equal(t, tc.value, v)
+			})
+
+			root = new
 		}
 	})
+
+	t.Run("ExistingValue", func(t *testing.T) {
+		t.Run("Fails", func(t *testing.T) {
+			for i, tc := range cs {
+				_, ok := handle.Insert(root, tc.key, tc.value, tc.weight)
+				require.False(t, ok, "insertion %d overwrote value", i)
+			}
+		})
+
+		t.Run("DoesNotChange", func(t *testing.T) {
+			for i, tc := range cs {
+				v, ok := handle.Get(root, tc.key)
+				require.True(t, ok, "retrieval %d failed", i)
+				require.Equal(t, tc.value, v, "value %d was modified", i)
+			}
+		})
+	})
+}
+
+func TestSetWeight(t *testing.T) {
+	var root *treap.Node
+	cs := mkTestCases(100)
+
+	var ok bool
+	for _, tc := range cs {
+		root, ok = handle.Insert(root, tc.key, tc.value, tc.weight)
+		require.True(t, ok)
+		require.NotNil(t, root)
+	}
+
+	t.Run("MissingKeyIsNop", func(t *testing.T) {
+		_, ok = handle.SetWeight(root, key(9999999999), nil)
+		require.False(t, ok)
+	})
+
+	for i := 5; i > 0; i-- {
+		new, ok := handle.SetWeight(root, cs[i].key, -i)
+		assert.True(t, ok)
+		assert.NotNil(t, new)
+		require.NotEqual(t, root, new) // immutability
+		root = new
+	}
+
+	var v interface{}
+	for i := 5; i > 0; i-- {
+		v, root = handle.Pop(root)
+		assert.NotNil(t, root)
+		assert.Equal(t, cs[i].value, v)
+	}
 }
 
 func TestPop(t *testing.T) {
@@ -128,7 +192,9 @@ func TestPop(t *testing.T) {
 
 	cs := mkTestCases(1000)
 	for _, tc := range cs {
-		root, _ = handle.Insert(root, tc.key, tc.value, tc.weight)
+		var ok bool
+		root, ok = handle.Insert(root, tc.key, tc.value, tc.weight)
+		require.True(t, ok)
 	}
 
 	for w := root.Weight; root != nil; _, root = handle.Pop(root) {
@@ -151,10 +217,8 @@ func TestFuzz(t *testing.T) {
 	var ok bool
 	var v interface{}
 	for i, tc := range cs {
-		if root, ok = handle.Insert(root, tc.key, tc.value, tc.weight); !ok {
-			t.Error("insertion failed (key collision?)")
-			t.FailNow()
-		}
+		root, ok = handle.Insert(root, tc.key, tc.value, tc.weight)
+		require.True(t, ok)
 
 		v, ok = handle.Get(root, tc.key)
 		assert.True(t, ok)
