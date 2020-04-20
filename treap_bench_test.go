@@ -6,7 +6,10 @@ import (
 	"github.com/lthibault/treap"
 )
 
-var discard, discardRight *treap.Node
+var (
+	discard, discardRight *treap.Node
+	discardNode           *treap.Node
+)
 
 func BenchmarkInsertSync(b *testing.B) {
 	var root *treap.Node
@@ -30,9 +33,8 @@ func BenchmarkInsertSync(b *testing.B) {
 
 func BenchmarkSplitSync(b *testing.B) {
 	var root *treap.Node
-	cs := mkTestCases(b.N)
 
-	for _, tc := range cs {
+	for _, tc := range mkTestCases(b.N) {
 		root, _ = handle.Insert(root, tc.key, tc.value, tc.weight)
 	}
 
@@ -46,10 +48,9 @@ func BenchmarkSplitSync(b *testing.B) {
 
 func BenchmarkMergeSync(b *testing.B) {
 	var root *treap.Node
-	cs := mkTestCases(b.N)
 	splits := make([]struct{ left, right *treap.Node }, b.N)
 
-	for _, tc := range cs {
+	for _, tc := range mkTestCases(b.N) {
 		root, _ = handle.Insert(root, tc.key, tc.value, tc.weight)
 	}
 
@@ -67,9 +68,8 @@ func BenchmarkMergeSync(b *testing.B) {
 
 func BenchmarkDeleteSync(b *testing.B) {
 	var root *treap.Node
-	cs := mkTestCases(b.N)
 
-	for _, tc := range cs {
+	for _, tc := range mkTestCases(b.N) {
 		root, _ = handle.Insert(root, tc.key, tc.value, tc.weight)
 	}
 
@@ -83,9 +83,8 @@ func BenchmarkDeleteSync(b *testing.B) {
 
 func BenchmarkPopSync(b *testing.B) {
 	var root *treap.Node
-	cs := mkTestCases(b.N)
 
-	for _, tc := range cs {
+	for _, tc := range mkTestCases(b.N) {
 		root, _ = handle.Insert(root, tc.key, tc.value, tc.weight)
 	}
 
@@ -112,5 +111,24 @@ func BenchmarkSetWeightSync(b *testing.B) {
 
 	for i, tc := range cs {
 		discard, _ = handle.SetWeight(root, tc.key, i)
+	}
+}
+
+func BenchmarkIterSync(b *testing.B) {
+	var root *treap.Node
+	cs := mkTestCases(10)
+
+	for _, tc := range cs {
+		root, _ = handle.Insert(root, tc.key, tc.value, tc.weight)
+	}
+
+	b.ReportAllocs()
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		for it := handle.Iter(root); it.Next(); {
+			discardNode = it.Node
+		}
+
 	}
 }

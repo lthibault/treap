@@ -182,6 +182,14 @@ func (h Handle) Pop(n *Node) (interface{}, *Node) {
 	return n.Value, h.Merge(n.Left, n.Right)
 }
 
+// Iter walks the tree in key-order.
+func (h Handle) Iter(n *Node) Iterator {
+	return Iterator{
+		n:     n,
+		stack: make([]*Node, 0, 16),
+	}
+}
+
 func (h Handle) leftRotation(n *Node) *Node {
 	return &Node{
 		Weight: n.Left.Weight,
@@ -212,4 +220,40 @@ func (h Handle) rightRotation(n *Node) *Node {
 		},
 		Right: n.Right.Right,
 	}
+}
+
+// Iterator contains treap iteration state.  Its methods are NOT thread-safe, but
+// multiple concurrent iterators are supported.
+type Iterator struct {
+	*Node
+	n     *Node
+	stack []*Node
+}
+
+// Next item.
+func (it *Iterator) Next() (more bool) {
+	for it.More() {
+		if it.n != nil {
+			it.stack = append(it.stack, it.n)
+			it.n = it.n.Left
+			continue
+		}
+
+		it.n, it.stack = pop(it.stack)
+		it.Node = it.n
+		it.n = it.n.Right
+
+		break
+	}
+
+	return it.More()
+}
+
+// More returns true if the iterator has not traversed the entire treap.
+func (it *Iterator) More() bool {
+	return len(it.stack) > 0 || it.n != nil
+}
+
+func pop(stack []*Node) (*Node, []*Node) {
+	return stack[len(stack)-1], stack[:len(stack)-1]
 }

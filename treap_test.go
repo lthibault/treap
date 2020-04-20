@@ -203,6 +203,29 @@ func TestPop(t *testing.T) {
 	}
 }
 
+func TestIter(t *testing.T) {
+	var root *treap.Node
+	cs := mkTestCases(10)
+
+	var ok bool
+	for _, tc := range cs {
+		root, ok = handle.Insert(root, tc.key, tc.value, tc.weight)
+		require.True(t, ok)
+		require.NotNil(t, root)
+	}
+
+	res := make([]int, 0, len(cs))
+	for it := handle.Iter(root); it.Next(); {
+		res = append(res, it.Key.(int))
+	}
+
+	var last = -1
+	for _, i := range res {
+		require.Less(t, last, i)
+		last = i
+	}
+}
+
 func TestFuzz(t *testing.T) {
 	/*
 		For good measure, we perform a deterministic fuzz test.  We generate a large
