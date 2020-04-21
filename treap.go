@@ -43,7 +43,7 @@ func (h Handle) GetNode(n *Node, key interface{}) (*Node, bool) {
 //
 // O(log n) if the treap is balanced (see Get).
 func (h Handle) Insert(n *Node, key, val, weight interface{}) (new *Node, ok bool) {
-	return h.upsert(n, key, val, weight, true, false)
+	return h.upsert(n, key, val, weight, true, false, nil)
 }
 
 // SetWeight adjusts the weight of the specified item.  It is a nop if the key is not in
@@ -51,7 +51,7 @@ func (h Handle) Insert(n *Node, key, val, weight interface{}) (new *Node, ok boo
 //
 // O(log n) if the treap is balanced (see Get).
 func (h Handle) SetWeight(n *Node, key, weight interface{}) (new *Node, ok bool) {
-	new, _ = h.upsert(n, key, nil, weight, false, true)
+	new, _ = h.upsert(n, key, nil, weight, false, true, nil)
 	ok = new != nil
 	return
 }
@@ -60,10 +60,18 @@ func (h Handle) SetWeight(n *Node, key, weight interface{}) (new *Node, ok bool)
 //
 // O(log n) if the treap is balanced (see Get).
 func (h Handle) Upsert(n *Node, key, val, weight interface{}) (new *Node, created bool) {
-	return h.upsert(n, key, val, weight, true, true)
+	return h.upsert(n, key, val, weight, true, true, nil)
 }
 
-func (h Handle) upsert(n *Node, k, v, w interface{}, create, update bool) (res *Node, created bool) {
+// UpsertIf the comparison function returns true.  This is functionally equivalent to a
+// Get followed by an Upsert, but faster.
+//
+// Return values and time complexity are identical to Upsert.
+func (h Handle) UpsertIf(n *Node, key, val, weight interface{}, comp func(*Node) bool) (*Node, bool) {
+	return h.upsert(n, key, val, weight, true, true, comp)
+}
+
+func (h Handle) upsert(n *Node, k, v, w interface{}, create, update bool, fn func(*Node) bool) (res *Node, created bool) {
 	if n == nil {
 		if create {
 			created = true
@@ -73,10 +81,10 @@ func (h Handle) upsert(n *Node, k, v, w interface{}, create, update bool) (res *
 		return
 	}
 
-	switch comp := h.CompareKeys(k, n.Key); {
-	case comp < 0:
+	switch h.CompareKeys(k, n.Key) {
+	case -1:
 		// use res as temp variable to avoid extra allocation
-		if res, created = h.upsert(n.Left, k, v, w, create, update); res == nil {
+		if res, created = h.upsert(n.Left, k, v, w, create, update, fn); res == nil {
 			return
 		}
 
@@ -87,9 +95,9 @@ func (h Handle) upsert(n *Node, k, v, w interface{}, create, update bool) (res *
 			Left:   res,
 			Right:  n.Right,
 		}
-	case comp > 0:
+	case 1:
 		// use res as temp variable to avoid extra allocation
-		if res, created = h.upsert(n.Right, k, v, w, create, update); res == nil {
+		if res, created = h.upsert(n.Right, k, v, w, create, update, fn); res == nil {
 			return
 		}
 
@@ -100,7 +108,16 @@ func (h Handle) upsert(n *Node, k, v, w interface{}, create, update bool) (res *
 			Left:   n.Left,
 			Right:  res,
 		}
-	case update:
+	default:
+		if !update { // insert only (no upsert)
+			return
+		}
+
+		if fn != nil && !fn(n) { // InsertIf decided to ignore
+			res = n
+			return
+		}
+
 		res = &Node{
 			Weight: w,
 			Key:    n.Key,
@@ -109,11 +126,9 @@ func (h Handle) upsert(n *Node, k, v, w interface{}, create, update bool) (res *
 			Right:  n.Right,
 		}
 
-		if create {
+		if create { // not SetWeight
 			res.Value = v // upsert; set new value.
 		}
-	default:
-		return
 	}
 
 	if res.Left != nil && h.CompareWeights(res.Left.Weight, res.Weight) < 0 {

@@ -151,6 +151,59 @@ func TestInsert(t *testing.T) {
 	})
 }
 
+func TestUpsert(t *testing.T) {
+	var root *treap.Node
+
+	t.Run("UpsertIf", func(t *testing.T) {
+		var ok, created bool
+		cs := []testCase{{
+			key:    10,
+			value:  "ten",
+			weight: 21,
+		}, {
+			key:    13,
+			value:  "thirteen",
+			weight: 0,
+		}, {
+			key:    33,
+			value:  "thirty three",
+			weight: 1,
+		}}
+
+		for _, tc := range cs {
+			root, ok = handle.Insert(root, tc.key, tc.value, tc.weight)
+			require.True(t, ok)
+
+			v, ok := handle.Get(root, tc.key) // debug
+			require.True(t, ok)               // debug
+			require.Equal(t, tc.value, v)     // debug
+		}
+
+		t.Run("InPlace", func(t *testing.T) {
+			for _, tc := range cs {
+				v, ok := handle.Get(root, tc.key) // debug
+				require.True(t, ok)               // debug
+				require.Equal(t, tc.value, v)     // debug
+
+				root, created = handle.UpsertIf(root, tc.key, "updated", -1,
+					func(n *treap.Node) bool { return n.Key.(int)%2 == 0 })
+				assert.False(t, created, tc)
+			}
+
+			assert.Equal(t, cs[0].key, root.Key)
+			assert.Equal(t, "updated", root.Value)
+		})
+
+		t.Run("Create", func(t *testing.T) {
+			root, created = handle.UpsertIf(root, 9001, "over 9000", -9001,
+				func(n *treap.Node) bool { return n == nil })
+			assert.True(t, created)
+			assert.Equal(t, 9001, root.Key)
+			assert.Equal(t, "over 9000", root.Value)
+		})
+	})
+}
+
 func TestSetWeight(t *testing.T) {
 	var root *treap.Node
 	cs := mkTestCases(100)
