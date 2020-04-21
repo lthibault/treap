@@ -5,6 +5,11 @@ import (
 	"unsafe"
 )
 
+// Comparator establishes ordering between two elements.
+// It returns -1 if a < b, 0 if a == b, and 1 if a > b.
+// Nil values are treated as -Inf.
+type Comparator func(a, b interface{}) int
+
 // MaxTreap wraps a comparator, resulting in a treap with max-heap ordering.
 func MaxTreap(f Comparator) Comparator {
 	return func(a, b interface{}) int {

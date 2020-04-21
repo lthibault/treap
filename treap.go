@@ -1,10 +1,5 @@
 package treap
 
-// Handle performs purely functional transformations on a treap.
-type Handle struct {
-	CompareWeights, CompareKeys Comparator
-}
-
 // Node is the recurisve datastructure that defines a persistent treap.
 //
 // The zero value is ready to use.
@@ -13,25 +8,34 @@ type Node struct {
 	Left, Right        *Node
 }
 
-// Comparator establishes ordering between two elements.
-// It returns -1 if a < b, 0 if a == b, and 1 if a > b.
-// Nil values are treated as -Inf.
-type Comparator func(a, b interface{}) int
+// Handle performs purely functional transformations on a treap.
+type Handle struct {
+	CompareWeights, CompareKeys Comparator
+}
 
 // Get an element by key.  Returns nil if the key is not in the treap.
 // O(log n) if the treap is balanced (i.e. has uniformly distributed weights).
 func (h Handle) Get(n *Node, key interface{}) (v interface{}, found bool) {
+	if n, found = h.GetNode(n, key); found {
+		v = n.Value
+	}
+	return
+}
+
+// GetNode returns the subtree whose root has the specified key.  This is equivalent to
+// Get, but returns a full node.
+func (h Handle) GetNode(n *Node, key interface{}) (*Node, bool) {
 	if n == nil {
 		return nil, false
 	}
 
 	switch comp := h.CompareKeys(key, n.Key); {
 	case comp < 0:
-		return h.Get(n.Left, key)
+		return h.GetNode(n.Left, key)
 	case comp > 0:
-		return h.Get(n.Right, key)
+		return h.GetNode(n.Right, key)
 	default:
-		return n.Value, true
+		return n, true
 	}
 }
 
@@ -232,7 +236,7 @@ type Iterator struct {
 
 // Next item.
 func (it *Iterator) Next() (more bool) {
-	for it.More() {
+	for more = it.More(); more; {
 		if it.n != nil {
 			it.stack = append(it.stack, it.n)
 			it.n = it.n.Left
@@ -246,7 +250,7 @@ func (it *Iterator) Next() (more bool) {
 		break
 	}
 
-	return it.More()
+	return
 }
 
 // More returns true if the iterator has not traversed the entire treap.
