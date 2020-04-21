@@ -1,20 +1,11 @@
-# treap
+# Treap
+
+Tread-safe, persistent treaps in pure Go.
 
 [![Godoc Reference](https://img.shields.io/badge/godoc-reference-blue.svg?style=flat-square)](https://godoc.org/github.com/lthibault/treap)
 [![Go Report Card](https://goreportcard.com/badge/github.com/SentimensRG/ctx?style=flat-square)](https://goreportcard.com/report/github.com/lthibault/treap)
 
-A functional Treap implementation that provides:
-
-- Ordered map operations
-- Heap operatons
-- Thread-safety through persistence
-- Memory-efficient structural sharing
-- O(log n) time complexity for all operations
-
-In addition, the `treap` package features zero external dependencies and extensive test
-coverage.
-
-## installation
+## Installation
 
 ```bash
 go get github.com/lthibault/treap
@@ -22,10 +13,60 @@ go get github.com/lthibault/treap
 
 Treap is tested using go 1.14 and later, but is likely to work with earlier versions.
 
-## usage
+## Why Treaps?
+
+Most developers are familiar with maps and heaps.
+
+- Maps provide keyed lookups.  Some even sort entries by key.
+- Heaps provide priority-ordering, with fast inserts and pops.
+
+But what if you need **both?**  And what if it needs to be both **thread-safe**, _and_
+non-blocking?
+
+Enter the _Immutable Treap_.
+
+Immutable treaps are persistent datastructures that provide:
+
+- Keyed lookups (like maps)
+- Priority ordering, pops and weighted inserts (like heaps)
+- Wait-free concurrency through immutability
+- Memory-efficiency through structural sharing
+- O(log n) time complexity for all operations
+
+When used in conjunction with `atomic.CompareAndSwapPointer`, it is possible to read
+from a treap without ever blocking -- even in the presence of concurrent writers!  Your
+typical CAS-loop will look like this:
+
+```go
+type Foo struct {
+    ptr unsafe.Pointer  // a *treap.Node
+}
+
+func (f *Foo) AddItem(key string, value, weight int) {
+    for {
+        old := (*treap.Node)(atomic.LoadPointer(&f.ptr))
+        new, _ := handle.Upsert(old, key, value, weight)
+
+        // attempt CAS
+        if atomic.CompareAndSwapPointer(&f.ptr,
+            unsafe.Pointer(old),
+            unsafe.Pointer(new),
+        ) {
+            break  // value successfully set; we're done
+        }
+    }
+}
+```
+
+In addition, this package features zero external dependencies and extensive test
+coverage.
+
+## Usage
 
 The treap data-structure is purely functional and immutable.  Methods like `Insert` and
 `Delete` return a **new** treap containing the desired modifications.
+
+A fully-runnable version of the following example can be found in `example_test.go`.
 
 ```go
 package main
@@ -128,5 +169,3 @@ func main() {
     }
 }
 ```
-
-A fully-runnable version of this example can be found in `example_test.go`.
