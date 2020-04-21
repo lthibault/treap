@@ -63,12 +63,10 @@ func (h Handle) Upsert(n *Node, key, val, weight interface{}) (new *Node, create
 	return h.upsert(n, key, val, weight, true, true, nil)
 }
 
-// UpsertIf the comparison function returns true.  This is functionally equivalent to a
-// Get followed by an Upsert, but faster.
-//
-// Return values and time complexity are identical to Upsert.
-func (h Handle) UpsertIf(n *Node, key, val, weight interface{}, comp func(*Node) bool) (*Node, bool) {
-	return h.upsert(n, key, val, weight, true, true, comp)
+// UpsertIf f returns true.  The node passed to f is guaranteed to be non-nil.
+// This is functionally equivalent to a Get followed by an Upsert, but faster.
+func (h Handle) UpsertIf(n *Node, key, val, weight interface{}, f func(*Node) bool) (*Node, bool) {
+	return h.upsert(n, key, val, weight, true, true, f)
 }
 
 func (h Handle) upsert(n *Node, k, v, w interface{}, create, update bool, fn func(*Node) bool) (res *Node, created bool) {
