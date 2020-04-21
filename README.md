@@ -5,12 +5,14 @@
 
 A functional Treap implementation that provides:
 
-- Zero dependencies
+- Ordered map operations
+- Heap operatons
 - Thread-safety through persistence
 - Memory-efficient structural sharing
-- Ordered map operations
-- Priority sorting (i.e. heap properties)
-- Extensive unit tests
+- O(log n) time complexity for all operations
+
+In addition, the `treap` package features zero external dependencies and extensive test
+coverage.
 
 ## installation
 
