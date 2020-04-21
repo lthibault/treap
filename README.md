@@ -14,7 +14,7 @@ A functional Treap implementation that provides:
 
 ## installation
 
-```go
+```bash
 go get github.com/lthibault/treap
 ```
 
