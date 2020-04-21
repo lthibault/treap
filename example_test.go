@@ -1,4 +1,4 @@
-package main
+package treap_test
 
 import (
 	"fmt"
@@ -6,29 +6,29 @@ import (
 	"github.com/lthibault/treap"
 )
 
-// Treap operations are performed by a lightweight handle.  Usually, you'll create a
-// single global handle and share it between goroutines.  Handle's methods are thread-
-// safe.
-//
-// A handle is defined by it's comparison functions (type `treap.Comparator`).
-var handle = treap.Handle{
-	// CompareKeys is used to store and receive mapped entries.  The comparator must be
-	// compatible with the Go type used for keys.  In this example, we'll use strings as
-	// keys.
-	CompareKeys: treap.StringComparator,
-
-	// CompareWeights is used to maintain priority-ordering of mapped entries, providing
-	// us with fast `Pop`, `Insert` and `SetWeight` operations.  You'll usually want
-	// to use a `treap.IntComparator` for weights, but you can use any comparison
-	// function you require.  Try it with `treap.TimeComparator`!
+func ExampleUsage() {
+	// Treap operations are performed by a lightweight handle.  Usually, you'll create a
+	// single global handle and share it between goroutines.  Handle's methods are thread-
+	// safe.
 	//
-	// Note that treaps are min-heaps by default, so `Pop` will always return the item
-	// with the _smallest_ weight.  You can easily switch to a max-heap by using
-	// `treap.MaxTreap`, if required.
-	CompareWeights: treap.IntComparator,
-}
+	// A handle is defined by it's comparison functions (type `treap.Comparator`).
+	var handle = treap.Handle{
+		// CompareKeys is used to store and receive mapped entries.  The comparator must be
+		// compatible with the Go type used for keys.  In this example, we'll use strings as
+		// keys.
+		CompareKeys: treap.StringComparator,
 
-func main() {
+		// CompareWeights is used to maintain priority-ordering of mapped entries, providing
+		// us with fast `Pop`, `Insert` and `SetWeight` operations.  You'll usually want
+		// to use a `treap.IntComparator` for weights, but you can use any comparison
+		// function you require.  Try it with `treap.TimeComparator`!
+		//
+		// Note that treaps are min-heaps by default, so `Pop` will always return the item
+		// with the _smallest_ weight.  You can easily switch to a max-heap by using
+		// `treap.MaxTreap`, if required.
+		CompareWeights: treap.IntComparator,
+	}
+
 	// We define an empty root node.  Don't worry -- there's no initialization required!
 	var root *treap.Node
 
@@ -65,7 +65,7 @@ func main() {
 
 	// Now that we've populated the treap, we can query it like an ordinary map.
 	lastn, _ := handle.Get(root, "Cassius")
-	fmt.Printf("Cassius => %s\n", lastn) // prints:  "Cassius => Clay"
+	fmt.Printf("Cassius => %s\n", lastn)
 
 	// Treaps also behave like binary heaps.  Let's start by peeking at the first value
 	// in the resulting priority queue.  Remember:  this is a min-heap by default.
@@ -75,7 +75,7 @@ func main() {
 	// Remember:  this is an immutable data-structure, so `Pop` doesn't actually mutate
 	// any state!
 	lastn, _ = handle.Pop(root)
-	fmt.Printf("Popped head node:\tMarcel %s\n", lastn) // prints:  "Marcel Cerdan"
+	fmt.Printf("Popped head node:\tMarcel %s\n", lastn)
 
 	// Jake LaMotta moved up to the heavyweight class late in his career.  Let's made an
 	// adjustment to his weight.
@@ -99,4 +99,21 @@ func main() {
 	for iterator := handle.Iter(root); iterator.Next(); i++ {
 		fmt.Printf("[%d] %s %s: %d\n", i, iterator.Key, iterator.Value, iterator.Weight)
 	}
+
+	// Output:
+	// Cassius => Clay
+	// Head node is:		Marcel Cerdan, 154 lbs
+	// Popped head node:	Marcel Cerdan
+	//
+	// [ heap traversal... ]
+	// Marcel Cerdan: 154
+	// Jake LaMotta: 205
+	// Cassius Clay: 210
+	// Joe Frazier: 215
+	//
+	// [ binary search-tree traversal (notice keys are sorted alphabetically)... ]
+	// [0] Cassius Clay: 210
+	// [1] Jake LaMotta: 205
+	// [2] Joe Frazier: 215
+	// [3] Marcel Cerdan: 154
 }

@@ -127,4 +127,4 @@ func main() {
 }
 ```
 
-A fully-runnable version of this example can be found in `example/tutorial`.
+A fully-runnable version of this example can be found in `example_test.go`.
