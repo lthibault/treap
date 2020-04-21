@@ -2,6 +2,7 @@
 
 Tread-safe, persistent treaps in pure Go.
 
+![tests](https://github.com/lthibault/treap/workflows/tests/badge.svg?branch=master)
 [![Godoc Reference](https://img.shields.io/badge/godoc-reference-blue.svg?style=flat-square)](https://godoc.org/github.com/lthibault/treap)
 [![Go Report Card](https://goreportcard.com/badge/github.com/SentimensRG/ctx?style=flat-square)](https://goreportcard.com/report/github.com/lthibault/treap)
 
