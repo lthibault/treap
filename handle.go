@@ -213,8 +213,8 @@ func (h Handle) Pop(n *Node) (interface{}, *Node) {
 }
 
 // Iter walks the tree in key-order.
-func (h Handle) Iter(n *Node) Iterator {
-	return Iterator{
+func (h Handle) Iter(n *Node) *Iterator {
+	return &Iterator{
 		n:     n,
 		stack: make([]*Node, 0, 16),
 	}
