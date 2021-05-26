@@ -12,22 +12,45 @@ var (
 )
 
 func BenchmarkInsertSync(b *testing.B) {
-	var root *treap.Node
-	cs := mkTestCases(b.N * 2)
-	is := cs[b.N:]
-	cs = cs[0:b.N]
-
 	// To make this a fair benchmark, let's measure single-inserts to a non-empty,
 	// balanced tree that is consistent across runs.
-	for _, tc := range cs {
-		root, _ = handle.Insert(root, tc.key, tc.value, tc.weight)
-	}
+	root := newPrefilledTreap(handle, 1000)
+
+	b.Run("NoPool", func(b *testing.B) {
+		benchmarkInsertSync(b, handle, root)
+	})
+
+	b.Run("MemPool", func(b *testing.B) {
+		var handle = treap.Handle{
+			CompareWeights: treap.IntComparator,
+			CompareKeys:    treap.IntComparator,
+			NodeFactory:    treap.NewMemPool(),
+		}
+
+		b.Run("MemPool/Cold", func(b *testing.B) {
+			benchmarkInsertSync(b, handle, root)
+		})
+
+		b.Run("MemPool/Warm", func(b *testing.B) {
+			// warm up the mempool
+			for i := 0; i < b.N; i++ {
+				handle.NewNode().Free()
+			}
+
+			benchmarkInsertSync(b, handle, root)
+		})
+	})
+}
+
+func benchmarkInsertSync(b *testing.B, handle treap.Handle, root *treap.Node) {
+	toInsert := mkTestCases(b.N)
 
 	b.ReportAllocs()
 	b.ResetTimer()
 
-	for _, tc := range is {
+	for _, tc := range toInsert {
 		discard, _ = handle.Insert(root, tc.key, tc.value, tc.weight)
+		discard.Free() // TODO:  consider testing without call to Free when benchmarking no-pool.
 	}
 }
 
@@ -67,12 +90,34 @@ func BenchmarkMergeSync(b *testing.B) {
 }
 
 func BenchmarkDeleteSync(b *testing.B) {
-	var root *treap.Node
+	root := newPrefilledTreap(handle, b.N)
 
-	for _, tc := range mkTestCases(b.N) {
-		root, _ = handle.Insert(root, tc.key, tc.value, tc.weight)
-	}
+	b.Run("NoPool", func(b *testing.B) {
+		benchmarkDeleteSync(b, handle, root)
+	})
 
+	b.Run("MemPool", func(b *testing.B) {
+		var handle = treap.Handle{
+			CompareWeights: treap.IntComparator,
+			CompareKeys:    treap.IntComparator,
+			NodeFactory:    treap.NewMemPool(),
+		}
+
+		b.Run("Cold", func(b *testing.B) {
+			benchmarkDeleteSync(b, handle, root)
+		})
+
+		b.Run("Warm", func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				handle.NewNode().Free() // warm up the mempool
+			}
+
+			benchmarkDeleteSync(b, handle, root)
+		})
+	})
+}
+
+func benchmarkDeleteSync(b *testing.B, handle treap.Handle, root *treap.Node) {
 	b.ReportAllocs()
 	b.ResetTimer()
 
@@ -82,20 +127,15 @@ func BenchmarkDeleteSync(b *testing.B) {
 }
 
 func BenchmarkPopSync(b *testing.B) {
-	var root *treap.Node
-
-	for _, tc := range mkTestCases(b.N) {
-		root, _ = handle.Insert(root, tc.key, tc.value, tc.weight)
-	}
+	root := newPrefilledTreap(handle, 1000)
 
 	b.ReportAllocs()
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		_, root = handle.Pop(root)
+		_, discard = handle.Pop(root)
+		// don't call free; the popped node is still in use!
 	}
-
-	discard = root
 }
 
 func BenchmarkSetWeightSync(b *testing.B) {
@@ -131,4 +171,15 @@ func BenchmarkIterSync(b *testing.B) {
 		}
 
 	}
+}
+
+func newPrefilledTreap(handle treap.Handle, n int) *treap.Node {
+	var root *treap.Node
+	cs := mkTestCases(n)
+
+	for _, tc := range cs {
+		root, _ = handle.Insert(root, tc.key, tc.value, tc.weight)
+	}
+
+	return root
 }

@@ -346,15 +346,9 @@ func mkTestCases(n int) []testCase {
 	cs := make([]testCase, n)
 	for i := range cs {
 		cs[i].key = i
-		cs[i].weight = i
+		cs[i].weight = rand.Int()
 		cs[i].value = randStr(5) // duplicates possible
 	}
-
-	// shuffle weights
-	rand.Shuffle(n, func(i, j int) {
-		cs[i].weight = j
-		cs[j].weight = i
-	})
 
 	// shuffle keys
 	rand.Shuffle(n, func(i, j int) {
