@@ -6,7 +6,7 @@ import (
 	"github.com/lthibault/treap"
 )
 
-func ExampleUsage() {
+func ExampleHandle() {
 	// Treap operations are performed by a lightweight handle.  Usually, you'll create a
 	// single global handle and share it between goroutines.  Handle's methods are thread-
 	// safe.
@@ -96,8 +96,9 @@ func ExampleUsage() {
 	// iterators can traverse the same treap safely.
 	var i int
 	fmt.Println("\n[ binary search-tree traversal (notice keys are sorted alphabetically)... ]")
-	for iterator := handle.Iter(root); iterator.Next(); i++ {
+	for iterator := handle.Iter(root); iterator.Node != nil; iterator.Next() {
 		fmt.Printf("[%d] %s %s: %d\n", i, iterator.Key, iterator.Value, iterator.Weight)
+		i++
 	}
 
 	// Output:

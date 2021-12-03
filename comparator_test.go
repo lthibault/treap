@@ -9,6 +9,8 @@ import (
 )
 
 func TestMaxTreap(t *testing.T) {
+	t.Parallel()
+
 	comp := treap.MaxTreap(treap.IntComparator)
 
 	for _, tc := range []struct {
@@ -38,6 +40,8 @@ func TestMaxTreap(t *testing.T) {
 }
 
 func TestIntComparator(t *testing.T) {
+	t.Parallel()
+
 	for _, tc := range []struct {
 		desc string
 		test []interface{}
@@ -68,6 +72,8 @@ func TestIntComparator(t *testing.T) {
 }
 
 func TestInt8Comparator(t *testing.T) {
+	t.Parallel()
+
 	for _, tc := range []struct {
 		desc string
 		test []interface{}
@@ -98,6 +104,8 @@ func TestInt8Comparator(t *testing.T) {
 }
 
 func TestInt16Comparator(t *testing.T) {
+	t.Parallel()
+
 	for _, tc := range []struct {
 		desc string
 		test []interface{}
@@ -128,6 +136,8 @@ func TestInt16Comparator(t *testing.T) {
 }
 
 func TestInt32Comparator(t *testing.T) {
+	t.Parallel()
+
 	for _, tc := range []struct {
 		desc string
 		test []interface{}
@@ -158,6 +168,8 @@ func TestInt32Comparator(t *testing.T) {
 }
 
 func TestInt64Comparator(t *testing.T) {
+	t.Parallel()
+
 	for _, tc := range []struct {
 		desc string
 		test []interface{}
@@ -188,6 +200,8 @@ func TestInt64Comparator(t *testing.T) {
 }
 
 func TestStringComparator(t *testing.T) {
+	t.Parallel()
+
 	for _, tc := range []struct {
 		desc string
 		test []interface{}
@@ -221,6 +235,8 @@ func TestStringComparator(t *testing.T) {
 }
 
 func TestByteComparator(t *testing.T) {
+	t.Parallel()
+
 	for _, tc := range []struct {
 		desc string
 		test []interface{}
@@ -254,6 +270,7 @@ func TestByteComparator(t *testing.T) {
 }
 
 func TestTimeComparator(t *testing.T) {
+	t.Parallel()
 
 	t0 := time.Now()
 
@@ -284,6 +301,8 @@ func TestTimeComparator(t *testing.T) {
 }
 
 func TestUIntComparator(t *testing.T) {
+	t.Parallel()
+
 	for _, tc := range []struct {
 		desc string
 		test []interface{}
@@ -314,6 +333,8 @@ func TestUIntComparator(t *testing.T) {
 }
 
 func TestUInt8Comparator(t *testing.T) {
+	t.Parallel()
+
 	for _, tc := range []struct {
 		desc string
 		test []interface{}
@@ -344,6 +365,8 @@ func TestUInt8Comparator(t *testing.T) {
 }
 
 func TestUInt16Comparator(t *testing.T) {
+	t.Parallel()
+
 	for _, tc := range []struct {
 		desc string
 		test []interface{}
@@ -374,6 +397,8 @@ func TestUInt16Comparator(t *testing.T) {
 }
 
 func TestUInt32Comparator(t *testing.T) {
+	t.Parallel()
+
 	for _, tc := range []struct {
 		desc string
 		test []interface{}
@@ -404,6 +429,8 @@ func TestUInt32Comparator(t *testing.T) {
 }
 
 func TestUInt64Comparator(t *testing.T) {
+	t.Parallel()
+
 	for _, tc := range []struct {
 		desc string
 		test []interface{}
@@ -434,6 +461,8 @@ func TestUInt64Comparator(t *testing.T) {
 }
 
 func TestFloat32Comparator(t *testing.T) {
+	t.Parallel()
+
 	for _, tc := range []struct {
 		desc string
 		test []interface{}
@@ -464,6 +493,8 @@ func TestFloat32Comparator(t *testing.T) {
 }
 
 func TestFloat64Comparator(t *testing.T) {
+	t.Parallel()
+
 	for _, tc := range []struct {
 		desc string
 		test []interface{}

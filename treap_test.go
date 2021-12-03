@@ -17,6 +17,8 @@ var handle = treap.Handle{
 }
 
 func TestTreap(t *testing.T) {
+	t.Parallel()
+
 	/*
 		This test preforms a somewhat ecological test that combines operations.
 		It is done in the spirit of an integration test.
@@ -107,6 +109,8 @@ func TestTreap(t *testing.T) {
 }
 
 func TestInsert(t *testing.T) {
+	t.Parallel()
+
 	var root *treap.Node
 	cs := mkTestCases(100)
 
@@ -152,6 +156,8 @@ func TestInsert(t *testing.T) {
 }
 
 func TestUpsert(t *testing.T) {
+	t.Parallel()
+
 	var root *treap.Node
 
 	t.Run("UpsertIf", func(t *testing.T) {
@@ -205,6 +211,8 @@ func TestUpsert(t *testing.T) {
 }
 
 func TestSetWeight(t *testing.T) {
+	t.Parallel()
+
 	var root *treap.Node
 	cs := mkTestCases(100)
 
@@ -237,6 +245,7 @@ func TestSetWeight(t *testing.T) {
 }
 
 func TestPop(t *testing.T) {
+	t.Parallel()
 	var root *treap.Node
 
 	v, tail := handle.Pop(nil)
@@ -256,34 +265,12 @@ func TestPop(t *testing.T) {
 	}
 }
 
-func TestIter(t *testing.T) {
-	var root *treap.Node
-	cs := mkTestCases(10)
-
-	var ok bool
-	for _, tc := range cs {
-		root, ok = handle.Insert(root, tc.key, tc.value, tc.weight)
-		require.True(t, ok)
-		require.NotNil(t, root)
-	}
-
-	res := make([]int, 0, len(cs))
-	for it := handle.Iter(root); it.Next(); {
-		res = append(res, it.Key.(int))
-	}
-
-	var last = -1
-	for _, i := range res {
-		require.Less(t, last, i)
-		last = i
-	}
-}
-
 func TestFuzz(t *testing.T) {
+	t.Parallel()
 	/*
 		For good measure, we perform a deterministic fuzz test.  We generate a large
 		number of key-value pairs, insert them, and then perform a mix of updates and
-		deletes, while ensuring the other entries are not invalidated by this process.
+			deletes, while ensuring the other entries are not invalidated by this process.
 	*/
 
 	var root *treap.Node

@@ -165,7 +165,7 @@ func main() {
     // To do this, we use an iterator.  Contrary to treaps, iterators are stateful and
     // mutable!  As such, they are NOT thread-safe.  However, multiple concurrent
     // iterators can traverse the same treap safely.
-    for iterator := handle.Iter(root); iterator.Next(); {
+    for iterator := handle.Iter(root); iterator.Node != nil; iterator.Next(); {
         fmt.Printf("%s %s: %d\n", iterator.Key, iterator.Value, iterator.Weight)
     }
 }

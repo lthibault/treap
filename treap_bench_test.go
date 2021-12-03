@@ -166,7 +166,7 @@ func BenchmarkIterSync(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		for it := handle.Iter(root); it.Next(); {
+		for it := handle.Iter(root); it.Node != nil; it.Next() {
 			discardNode = it.Node
 		}
 
