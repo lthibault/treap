@@ -9,6 +9,14 @@ type Iterator struct {
 	stack *stack
 }
 
+// Iter walks the tree in key-order.
+func (h Handle) Iter(n *Node) *Iterator {
+	it := iterPool.Get().(*Iterator)
+	it.stack = push(nil, n)
+	it.Next()
+	return it
+}
+
 // Next item.
 func (it *Iterator) Next() {
 	// are we resuming?
@@ -27,6 +35,21 @@ func (it *Iterator) Next() {
 		it.stack = push(it.stack, it.Node)
 		it.Node = it.Node.Left
 	}
+
+	if it.Node == nil {
+		it.Finish()
+	}
+}
+
+// Finish SHOULD be called if the caller has not exhausted the iterator.
+// An iterator is exhausted when 'it.Node' is nil.
+func (it *Iterator) Finish() {
+	// return stack frames to the pool
+	for it.stack != nil {
+		_, it.stack = pop(it.stack)
+	}
+
+	iterPool.Put(it)
 }
 
 // Stack is a singly-linked list of nodes.
@@ -58,4 +81,8 @@ func pop(s *stack) (n *Node, tail *stack) {
 
 var stackPool = sync.Pool{
 	New: func() interface{} { return &stack{} },
+}
+
+var iterPool = sync.Pool{
+	New: func() interface{} { return &Iterator{} },
 }

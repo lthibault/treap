@@ -193,13 +193,6 @@ func (h Handle) Pop(n *Node) (interface{}, *Node) {
 	return n.Value, h.Merge(n.Left, n.Right)
 }
 
-// Iter walks the tree in key-order.
-func (h Handle) Iter(n *Node) *Iterator {
-	it := &Iterator{stack: push(nil, n)}
-	it.Next()
-	return it
-}
-
 func (h Handle) leftRotation(n *Node) *Node {
 	return &Node{
 		Key:    n.Left.Key,
