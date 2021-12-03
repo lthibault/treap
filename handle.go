@@ -3,25 +3,6 @@ package treap
 // Handle performs purely functional transformations on a treap.
 type Handle struct {
 	CompareWeights, CompareKeys Comparator
-	NodeFactory
-}
-
-func (h Handle) NewNode() *Node {
-	if h.NodeFactory == nil {
-		return &Node{}
-	}
-
-	return h.NodeFactory.NewNode()
-}
-
-func (h Handle) mkNode(key, val, w interface{}, left, right *Node) (n *Node) {
-	n = h.NewNode()
-	n.Key = key
-	n.Value = val
-	n.Weight = w
-	n.Left = left
-	n.Right = right
-	return
 }
 
 // Get an element by key.  Returns nil if the key is not in the treap.
@@ -84,7 +65,7 @@ func (h Handle) upsert(n *Node, k, v, w interface{}, create, update bool, fn fun
 	if n == nil {
 		if create {
 			created = true
-			res = h.mkNode(k, v, w, nil, nil)
+			res = &Node{Key: k, Value: v, Weight: w}
 		}
 
 		return
@@ -97,26 +78,26 @@ func (h Handle) upsert(n *Node, k, v, w interface{}, create, update bool, fn fun
 			return
 		}
 
-		res = h.mkNode(
-			n.Key,
-			n.Value,
-			n.Weight,
-			res,
-			n.Right,
-		)
+		res = &Node{
+			Key:    n.Key,
+			Value:  n.Value,
+			Weight: n.Weight,
+			Left:   res,
+			Right:  n.Right,
+		}
 	case 1:
 		// use res as temp variable to avoid extra allocation
 		if res, created = h.upsert(n.Right, k, v, w, create, update, fn); res == nil {
 			return
 		}
 
-		res = h.mkNode(
-			n.Key,
-			n.Value,
-			n.Weight,
-			n.Left,
-			res,
-		)
+		res = &Node{
+			Key:    n.Key,
+			Value:  n.Value,
+			Weight: n.Weight,
+			Left:   n.Left,
+			Right:  res,
+		}
 
 	default:
 		if !update { // insert only (no upsert)
@@ -128,13 +109,13 @@ func (h Handle) upsert(n *Node, k, v, w interface{}, create, update bool, fn fun
 			return
 		}
 
-		res = h.mkNode(
-			n.Key,
-			n.Value,
-			w,
-			n.Left,
-			n.Right,
-		)
+		res = &Node{
+			Key:    n.Key,
+			Value:  n.Value,
+			Weight: w,
+			Left:   n.Left,
+			Right:  n.Right,
+		}
 
 		if create { // not SetWeight
 			res.Value = v // upsert; set new value.
@@ -171,22 +152,22 @@ func (h Handle) Merge(left, right *Node) *Node {
 	case right == nil:
 		return left
 	case h.CompareWeights(left.Weight, right.Weight) < 0:
-		return h.mkNode(
-			left.Key,
-			left.Value,
-			left.Weight,
-			left.Left,
-			h.Merge(left.Right, right),
-		)
+		return &Node{
+			Key:    left.Key,
+			Value:  left.Value,
+			Weight: left.Weight,
+			Left:   left.Left,
+			Right:  h.Merge(left.Right, right),
+		}
 
 	default:
-		return h.mkNode(
-			right.Key,
-			right.Value,
-			right.Weight,
-			h.Merge(left, right.Left),
-			right.Right,
-		)
+		return &Node{
+			Key:    right.Key,
+			Value:  right.Value,
+			Weight: right.Weight,
+			Left:   h.Merge(left, right.Left),
+			Right:  right.Right,
+		}
 	}
 }
 
@@ -220,33 +201,33 @@ func (h Handle) Iter(n *Node) *Iterator {
 }
 
 func (h Handle) leftRotation(n *Node) *Node {
-	return h.mkNode(
-		n.Left.Key,
-		n.Left.Value,
-		n.Left.Weight,
-		n.Left.Left,
-		h.mkNode(
-			n.Key,
-			n.Value,
-			n.Weight,
-			n.Left.Right,
-			n.Right,
-		),
-	)
+	return &Node{
+		Key:    n.Left.Key,
+		Value:  n.Left.Value,
+		Weight: n.Left.Weight,
+		Left:   n.Left.Left,
+		Right: &Node{
+			Key:    n.Key,
+			Value:  n.Value,
+			Weight: n.Weight,
+			Left:   n.Left.Right,
+			Right:  n.Right,
+		},
+	}
 }
 
 func (h Handle) rightRotation(n *Node) *Node {
-	return h.mkNode(
-		n.Right.Key,
-		n.Right.Value,
-		n.Right.Weight,
-		h.mkNode(
-			n.Key,
-			n.Value,
-			n.Weight,
-			n.Left,
-			n.Right.Left,
-		),
-		n.Right.Right,
-	)
+	return &Node{
+		Key:    n.Right.Key,
+		Value:  n.Right.Value,
+		Weight: n.Right.Weight,
+		Left: &Node{
+			Key:    n.Key,
+			Value:  n.Value,
+			Weight: n.Weight,
+			Left:   n.Left,
+			Right:  n.Right.Left,
+		},
+		Right: n.Right.Right,
+	}
 }

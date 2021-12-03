@@ -16,33 +16,6 @@ func BenchmarkInsertSync(b *testing.B) {
 	// balanced tree that is consistent across runs.
 	root := newPrefilledTreap(handle, 1000)
 
-	b.Run("NoPool", func(b *testing.B) {
-		benchmarkInsertSync(b, handle, root)
-	})
-
-	b.Run("MemPool", func(b *testing.B) {
-		var handle = treap.Handle{
-			CompareWeights: treap.IntComparator,
-			CompareKeys:    treap.IntComparator,
-			NodeFactory:    treap.NewMemPool(),
-		}
-
-		b.Run("MemPool/Cold", func(b *testing.B) {
-			benchmarkInsertSync(b, handle, root)
-		})
-
-		b.Run("MemPool/Warm", func(b *testing.B) {
-			// warm up the mempool
-			for i := 0; i < b.N; i++ {
-				handle.NewNode().Free()
-			}
-
-			benchmarkInsertSync(b, handle, root)
-		})
-	})
-}
-
-func benchmarkInsertSync(b *testing.B, handle treap.Handle, root *treap.Node) {
 	toInsert := mkTestCases(b.N)
 
 	b.ReportAllocs()
@@ -50,7 +23,6 @@ func benchmarkInsertSync(b *testing.B, handle treap.Handle, root *treap.Node) {
 
 	for _, tc := range toInsert {
 		discard, _ = handle.Insert(root, tc.key, tc.value, tc.weight)
-		discard.Free() // TODO:  consider testing without call to Free when benchmarking no-pool.
 	}
 }
 
@@ -92,32 +64,6 @@ func BenchmarkMergeSync(b *testing.B) {
 func BenchmarkDeleteSync(b *testing.B) {
 	root := newPrefilledTreap(handle, b.N)
 
-	b.Run("NoPool", func(b *testing.B) {
-		benchmarkDeleteSync(b, handle, root)
-	})
-
-	b.Run("MemPool", func(b *testing.B) {
-		var handle = treap.Handle{
-			CompareWeights: treap.IntComparator,
-			CompareKeys:    treap.IntComparator,
-			NodeFactory:    treap.NewMemPool(),
-		}
-
-		b.Run("Cold", func(b *testing.B) {
-			benchmarkDeleteSync(b, handle, root)
-		})
-
-		b.Run("Warm", func(b *testing.B) {
-			for i := 0; i < b.N; i++ {
-				handle.NewNode().Free() // warm up the mempool
-			}
-
-			benchmarkDeleteSync(b, handle, root)
-		})
-	})
-}
-
-func benchmarkDeleteSync(b *testing.B, handle treap.Handle, root *treap.Node) {
 	b.ReportAllocs()
 	b.ResetTimer()
 
