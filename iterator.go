@@ -35,14 +35,11 @@ func (it *Iterator) Next() {
 		it.stack = push(it.stack, it.Node)
 		it.Node = it.Node.Left
 	}
-
-	if it.Node == nil {
-		it.Finish()
-	}
 }
 
-// Finish SHOULD be called if the caller has not exhausted the iterator.
-// An iterator is exhausted when 'it.Node' is nil.
+// Finish SHOULD be called when the iterator has been
+// exhausted.  An iterator is exhausted when 'it.Node'
+// is nil.
 func (it *Iterator) Finish() {
 	// return stack frames to the pool
 	for it.stack != nil {
